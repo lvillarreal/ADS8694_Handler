@@ -66,8 +66,8 @@ BEGIN
   	WHEN ini =>
 	
 			start <= '0';
-	--		data_out <= "0000101100000000";  --comando para seleccionar +-2.5 Vref
-			data_out <= "0000101100000010";	--comando para seleccionar +-0.625Vref
+			data_out <= "0000101100000000";  --comando para seleccionar +-2.5 Vref
+	--		data_out <= "0000101100000010";	--comando para seleccionar +-0.625Vref
 
 			if spi_busy = '0' then	-- modulo spi disponble para transmitir
 				next_state <= e0;

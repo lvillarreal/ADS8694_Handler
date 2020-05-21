@@ -74,7 +74,8 @@ constant ACK   			: 	std_logic_vector(7 downto 0) 	:= X"06";
 constant LF					:  std_logic_vector(7 downto 0)	:= X"0A";
 constant EOT				:	std_logic_vector(7 downto 0)	:= X"04";
 constant ENQ				:	std_logic_vector(7 downto 0)	:= X"05";
-constant VREF				:	std_logic_vector(15 downto 0) := X"0A00";	--2560 para indicar Vref de +-2.56V
+--	constant VREF				:	std_logic_vector(15 downto 0) := X"0A00";	--2560 para indicar Vref de +-2.56V
+constant VREF				:	std_logic_vector(15 downto 0) := X"2800";	--10240 para indicar Vref de +-10.24V
 
 begin
 
