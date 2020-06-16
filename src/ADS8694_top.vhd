@@ -2,6 +2,10 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
 
+--	Los datos en punto fijo se representaras de la forma fixdt(signed,bitsEntero,bitsDecimal)
+--	donde signed (1 o 0) indica si es signado o no, bitEntero cantidad de bits parte entera,
+--	bitsDecimal cantidad de bits parte decimal
+
 entity ADS8694_top is
 
   port (
@@ -49,6 +53,21 @@ architecture Behavioral  of ADS8694_top  is
 		o_clk_test		:	out std_logic;
 		o_data 			: 	OUT std_logic_vector(15 downto 0);
 		o_data_ready 	:	OUT std_logic
+		);
+	END COMPONENT;
+
+-- ADC data converter
+	COMPONENT data_convert
+	GENERIC(
+		V_FS : integer := 167772
+	);
+	PORT(
+		clk_i : IN std_logic;
+		reset_i : IN std_logic;
+		data_i : IN std_logic_vector(17 downto 0);
+		data_i_en : IN std_logic;          
+		data_o : OUT std_logic_vector(18 downto 0);
+		data_o_en : OUT std_logic
 		);
 	END COMPONENT;
 
@@ -201,7 +220,8 @@ end component fsm_ad8694;
 
 	constant  DATA_WIDTH    : integer range 0 to MISO_width :=  MISO_width;
 	constant  cant_muestras : integer range 0 to 1024 :=  1024;
-
+	
+	constant V_FS	:	integer range 0 to 167772 := 167772;	-- es el valor maximo del rango de entrada multiplicado por 2^14
 
 
 
@@ -284,10 +304,16 @@ signal ads8694_data_received_ready	:	std_logic;
 	signal s_uartHand_TX		:	std_logic;
 	signal s_uartHand_RX		:	std_logic;
 
-	
+-- DATA TEST SIGNALS	
 	signal s_data_test_data_Ready : 	std_logic;
 	signal s_data_test_data			: 	std_logic_vector(15 downto 0);
 	signal s_data_test_start		:	std_logic;
+	
+-- SDC DATA CONVERTER SIGNALS
+	signal s_dc_data_i		:	std_logic_vector(DATA_WIDTH-1 downto 0);
+	signal s_dc_data_i_en	:	std_logic;
+	signal s_dc_data_o		:	std_logic_vector(DATA_WIDTH downto 0);	-- 19 bits, formato fixdt(1,4,14)
+	signal s_dc_data_o_en	:	std_logic;
 begin
 
 --	DEBUG
@@ -361,6 +387,20 @@ begin
 		o_clk_test	=>	clk_test,
 		o_data => s_data_test_data,
 		o_data_ready => s_data_test_data_Ready 
+	);
+
+-- ADC DATA CONVERTER
+	Inst_data_convert: data_convert 
+	GENERIC MAP(
+		V_FS =>	V_FS	
+	)
+	PORT MAP(
+		clk_i => clk,
+		reset_i => reset,
+		data_i => s_dc_data_i,
+		data_i_en => s_dc_data_i_en,
+		data_o => s_dc_data_o,
+		data_o_en => s_dc_data_o_en
 	);
 
 -- DATA BUFFER

@@ -44,7 +44,7 @@ end data_convert;
 
 architecture Behavioral of data_convert is
 
-type state is (s_ini,e0,e1);
+type state is (e0,e1);
 
 -- CONSTANT DEFINITION
 constant c_vfs : signed(18 downto 0) := to_signed(V_FS,19);
@@ -53,20 +53,21 @@ constant c_vfs : signed(18 downto 0) := to_signed(V_FS,19);
 
 signal present_state, next_state : state;
 
-signal s_data_in 	:	signed(18 downto 0);
-signal s_data_out :	signed(
+signal s_data_i 	:	signed(18 downto 0);
+signal s_mult		:	signed(37 downto 0);
+
+
 begin
 
-s_data_in <= '0' & signed(data_in);
+s_data_i <= signed('0' & data_i);
+s_mult <= shift_right(s_data_i * c_vfs,17);
+data_o <= std_logic_vector(s_mult(18 downto 0) - c_vfs);
+
 
 fsm	:process(present_state, data_i_en)
 begin
 
 case present_state is
-	when s_ini => 
-		data_o <= (others => '0');
-		data_o_en <= '0';
-		next_state <= e0;
 	
 	when e0 =>
 		data_o_en <= '0';
@@ -77,11 +78,13 @@ case present_state is
 		end if;
 	
 	when e1 =>
-		
+		data_o_en <= '1';
+		next_state <= e0;
 		
 	
 	when others => next_state <= e0;
 end case;
+
 
 end process;
 
@@ -90,7 +93,7 @@ p_StateAssignmet :process(clk_i,reset_i,next_state) is
 begin
 	if rising_edge(clk_i) then
 		if reset_i = '1' then
-			present_state <= s_ini;
+			present_state <= e0;
 		else
 			present_state <= next_state;
 		end if;
