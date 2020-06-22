@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity data_convert is
 	 GENERIC(
-			V_FS : integer := 167772	-- valor de fondo de escala, en representacion fixdt(1,4,14), en este caso 10.24*2^14 
+			V_FS : integer := 167772	-- valor de fondo de escala, en representacion fixdt(1,19,14), en este caso 10.24*2^14 
 	 );
     Port ( clk_i 		: 	in  	STD_LOGIC;
            reset_i 	: 	in  	STD_LOGIC;
@@ -55,14 +55,23 @@ signal present_state, next_state : state;
 
 signal s_data_i 	:	signed(18 downto 0);
 signal s_mult		:	signed(37 downto 0);
-
+signal s_data_o	:	std_logic_vector(18 downto 0);
 
 begin
 
-s_data_i <= signed('0' & data_i);
-s_mult <= shift_right(s_data_i * c_vfs,17);
-data_o <= std_logic_vector(s_mult(18 downto 0) - c_vfs);
 
+s_mult <= shift_right(s_data_i * c_vfs,17);
+s_data_o <= std_logic_vector(s_mult(18 downto 0) - c_vfs);
+
+
+-- registro entrada y salida
+process(clk_i,data_i, s_data_o)
+begin
+	if rising_edge(clk_i)then
+		s_data_i <= signed('0' & data_i);
+		data_o <= std_logic_vector(s_data_o);
+	end if;
+end process;
 
 fsm	:process(present_state, data_i_en)
 begin

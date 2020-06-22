@@ -31,12 +31,13 @@ entity ADS8694_top is
 		  led1			: out  STD_LOGIC;
 		  
 		  -- salidas/entradas adicionales para debug
-  		  RX_test	: out std_logic;
-		  TX_test	: out std_logic;
-		  sel 		: in  STD_LOGIC;
-		  led			: out STD_LOGIC_VECTOR (7 downto 0);
-		  sal_test	: out STD_LOGIC_VECTOR (17 downto 0);
-		  clk_test	: out std_logic
+  		  RX_test			: out std_logic;
+		  TX_test			: out std_logic;
+		  select_filter 	: in 	std_logic;
+		  sel 				: in  STD_LOGIC;
+		  led					: out STD_LOGIC_VECTOR (7 downto 0);
+		  sal_test			: out STD_LOGIC_VECTOR (17 downto 0);
+		  clk_test			: out std_logic
 
   );
 end ADS8694_top;
@@ -55,6 +56,33 @@ architecture Behavioral  of ADS8694_top  is
 		o_data_ready 	:	OUT std_logic
 		);
 	END COMPONENT;
+
+-- PULSE STRETCHER
+	COMPONENT pulse_stretcher
+	GENERIC(
+		FREQ_IN	:	integer 	:= 100000000;	-- frecuencia clk in
+		FREQ_OUT	:	integer	:=	20000			--	frecuencia clk out
+	 );
+	PORT(
+		clk : IN std_logic;
+		reset : IN std_logic; 
+      pulse_in	:	in	 STD_LOGIC;
+		clk_o : OUT std_logic
+		);
+	END COMPONENT;
+
+
+-- IIR FILTER
+    COMPONENT filter
+    PORT(
+         clk : IN  std_logic;
+         clk_enable : IN  std_logic;
+         reset : IN  std_logic;
+         filter_in : IN  std_logic_vector(18 downto 0);
+         filter_out : OUT  std_logic_vector(18 downto 0)
+        );
+    END COMPONENT;
+
 
 -- ADC data converter
 	COMPONENT data_convert
@@ -201,9 +229,13 @@ end component fsm_ad8694;
 --	El clock es de 100 MHz
 ---------------------------------------------------
 
+-- FRECUENCIA DEL CLOCK
+	constant FREQ_CLK					:	integer := 100000000;	-- 100 MHZ
+
 -- 20 ksps
-	constant divisor		:	integer range 0 to 200			:=	73;			--	SCLK de 675.68 kHz, Fs de 20 kHz
-	constant SAMPLE_RATE	:	std_logic_vector(23 downto 0)	:=	X"004E20";	-- 20 ksps
+	constant divisor					:	integer range 0 to 200			:=	74;			--	SCLK de 675.68 kHz, Fs de 20 kHz
+	constant SAMPLE_RATE				:	std_logic_vector(23 downto 0)	:=	X"004E20";	-- 20 ksps
+	constant FREQ_OUT					:	integer := 20000;										-- 20 khz, se utiliza para clk del filtro
 
 -- 16 ksps
 --	constant divisor		:	integer range 0 to 200 			:= 92; 			-- Con 92 se logra un SCLK de 543.478 kHz (frecuencia de muestreo de 16 kHz)
@@ -264,21 +296,16 @@ signal ads8694_data_received_ready	:	std_logic;
 --signal ads8694_led0          : STD_LOGIC;
 --signal ads8694_led1          : STD_LOGIC;
 
--- filter signals
---
---  signal lpf_clk            : std_logic;
---  signal lpf_reset          : std_logic;
---  signal lpf_data_in        : std_logic_vector(DATA_WIDTH-1 downto 0);
---  signal lpf_data_in_ready  : std_logic;
---  signal lpf_data_out       : std_logic_vector(DATA_WIDTH-1 downto 0);
---  signal lpf_data_out_ready : std_logic;
+-- PULSE STRETCHER SIGNALS
+	signal s_ps_clk_o				:	std_logic;
+	signal s_ps_pulse_in			:	std_logic;
+	
+-- FILTER SIGNALS
+	signal s_filter_clk 			: 	std_logic;
+	signal s_filter_clk_enable	: 	std_logic;
+	signal s_filter_in 			: 	std_logic_vector(18 downto 0);
+	signal s_filter_out 			: 	std_logic_vector(18 downto 0);
 
-
--- FIR SIGNALS
---	signal fir_clk			 :	std_logic;
---	signal fir_clk_enable :	std_logic;
---	signal fir_filter_in	 :	real;
---	signal fir_filter_out : real;
 	
 -- DATA BUFFER	 SIGNALS
 	
@@ -309,11 +336,14 @@ signal ads8694_data_received_ready	:	std_logic;
 	signal s_data_test_data			: 	std_logic_vector(15 downto 0);
 	signal s_data_test_start		:	std_logic;
 	
--- SDC DATA CONVERTER SIGNALS
+-- ADC DATA CONVERTER SIGNALS
 	signal s_dc_data_i		:	std_logic_vector(DATA_WIDTH-1 downto 0);
 	signal s_dc_data_i_en	:	std_logic;
 	signal s_dc_data_o		:	std_logic_vector(DATA_WIDTH downto 0);	-- 19 bits, formato fixdt(1,4,14)
 	signal s_dc_data_o_en	:	std_logic;
+	
+	
+	
 begin
 
 --	DEBUG
@@ -360,9 +390,23 @@ begin
 	TX					<=	s_uartHand_TX;
 	s_uartHand_RX 	<= RX;
 
-
-	s_datBuff_i_data 		<= ads8694_data_received(MISO_WIDTH-1 downto MISO_WIDTH-16);	-- 16 bits de los 18
-	s_datBuff_i_data_en	<=	ads8694_data_received_ready;
+-- DATA CONVERTER
+	s_dc_data_i 		<= ads8694_data_received;
+	s_dc_data_i_en 	<= ads8694_data_received_ready;
+	
+-- FILTER
+	s_filter_clk_enable	<= '1';--s_uartHand_o_Comm_Ready;
+	s_filter_in  <= s_dc_data_o;
+		
+	s_filter_clk <= s_ps_clk_o;
+	
+	s_ps_pulse_in <= s_dc_data_o_en;
+	
+	s_datBuff_i_data 		<= s_filter_out(18 downto 3);	
+	s_datBuff_i_data_en	<=	s_dc_data_o_en;
+	
+--	s_datBuff_i_data 		<= ads8694_data_received(MISO_WIDTH-1 downto MISO_WIDTH-16);	-- 16 bits de los 18
+--	s_datBuff_i_data_en	<=	ads8694_data_received_ready;
 
 --	s_datBuff_i_data 		<= s_data_test_data;
 --	s_datBuff_i_data_en	<= s_data_test_data_Ready;
@@ -388,6 +432,30 @@ begin
 		o_data => s_data_test_data,
 		o_data_ready => s_data_test_data_Ready 
 	);
+
+
+-- PULSE STRETCHER
+	Inst_pulse_stretcher: pulse_stretcher 
+	GENERIC MAP(
+		FREQ_IN	=>	FREQ_CLK,
+		FREQ_OUT	=> FREQ_OUT
+	)
+	PORT MAP(
+		clk 		=> clk,
+		reset 	=> reset,
+		pulse_in	=> s_ps_pulse_in,
+		clk_o 	=> s_ps_clk_o
+	);	
+	
+-- IIR FILTER
+   IIR_FILTER: filter PORT MAP (
+          clk => s_filter_clk,
+          clk_enable => s_filter_clk_enable,
+          reset => reset,
+          filter_in => s_filter_in,
+          filter_out => s_filter_out
+        );	
+	
 
 -- ADC DATA CONVERTER
 	Inst_data_convert: data_convert 
