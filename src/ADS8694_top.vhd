@@ -355,9 +355,11 @@ begin
 	sal_test <= dato;
 	s_data_test_start <= s_uartHand_o_Comm_Ready;
 
+	--dato <= ads8694_data_received;
+	dato <= s_filter_out(18 downto 1);	
   -- SIGNAL INTERCONNECTION
   
-  dato <= ads8694_data_received;
+  
   --data_received <=  ads8694_data_received;
 
   ads8694_clk           	<=  clk_l1;

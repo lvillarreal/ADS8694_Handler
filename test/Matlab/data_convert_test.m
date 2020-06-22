@@ -18,7 +18,7 @@ x = round((x1/10.24+1)*2^17);
 data(:,1) = t';
 data(:,2) = x1;
 
-
+%%
 fileID = fopen('data.bin','w');
 format long
 
