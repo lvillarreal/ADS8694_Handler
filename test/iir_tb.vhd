@@ -62,6 +62,19 @@ ARCHITECTURE behavior OF iir_tb IS
     END COMPONENT;
 
 
+    COMPONENT pulse_stretcher
+	 GENERIC(
+		FREQ_IN	:	integer 	:= 100000000;	-- frecuencia clk in
+		FREQ_OUT	:	integer	:=	20000		--	frecuencia clk out
+	 );
+    PORT(
+         clk : IN  std_logic;
+         reset : IN  std_logic;
+         pulse_in : IN  std_logic;
+         clk_o : OUT  std_logic
+        );
+    END COMPONENT;
+
 	signal clk_100 : std_logic := '0';
 	signal clk_20  : std_logic := '0';
 
@@ -80,6 +93,8 @@ ARCHITECTURE behavior OF iir_tb IS
 	
 	signal data_o : std_logic_vector(18 downto 0);
 	signal data_o_en : std_logic;
+	
+	signal pulse_in,clk_o : std_logic;
 	
    -- Clock period definitions
    constant clk100mhz : time := 10 ns;	-- 100mhz
@@ -111,6 +126,19 @@ BEGIN
 		wait for clk20khz/2;
    end process;
  
+ 	-- Instantiate the Unit Under Test (UUT)
+   uut3: pulse_stretcher 
+	GENERIC MAP(
+		FREQ_IN 	=> FREQ_IN,
+		FREQ_OUT => FREQ_OUT
+	)
+	PORT MAP (
+          clk => clk_100,
+          reset => reset,
+          pulse_in => pulse_in,
+          clk_o => clk_o
+        );
+ 
 	-- Instantiate the Unit Under Test (UUT)
    uut: filter PORT MAP (
           clk => clk_filter,
@@ -134,8 +162,8 @@ BEGIN
 
  
   filter_in <= data_o;
-  clk_filter <= data_o_en;
-
+  clk_filter <= clk_o;
+  pulse_in <= data_o_en;
   
   
    -- Stimulus process
@@ -180,9 +208,10 @@ BEGIN
 			--filter_in <= std_logic_vector(to_signed(i,19));
 			data_i <= std_logic_vector(to_unsigned(i,18));
 			data_i_en <= '1';
+			
 			wait until rising_edge(clk_100);
-			wait until rising_edge(clk_100);
-			wait until rising_edge(clk_100);
+			--wait until rising_edge(clk_100);
+			--wait until rising_edge(clk_100);
 			data_i_en <= '0';
 			wait until rising_edge(clk_20);
 

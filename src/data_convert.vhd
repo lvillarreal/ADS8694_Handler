@@ -29,6 +29,9 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+-- REALIZA LA CONVERSION DEL DATO DE SALIDA DEL AD
+-- V_in = V_ADC * V_FS * 2^-17 - V_FS
+
 entity data_convert is
 	 GENERIC(
 			V_FS : integer := 167772	-- valor de fondo de escala, en representacion fixdt(1,19,14), en este caso 10.24*2^14 
@@ -44,36 +47,36 @@ end data_convert;
 
 architecture Behavioral of data_convert is
 
-type state is (e0,e1);
+type state is (e0,e1,e2,e3);--,e4,e5,e6);
 
 -- CONSTANT DEFINITION
-constant c_vfs : signed(18 downto 0) := to_signed(V_FS,19);
-
+constant c_vfs : 	signed(18 downto 0) := to_signed(V_FS,19);
 -- SIGNAL DEFINITION
 
 signal present_state, next_state : state;
 
 signal s_data_i 	:	signed(18 downto 0);
 signal s_mult		:	signed(37 downto 0);
+--signal s_mult1    :  signed(38 downto 0);
 signal s_data_o	:	std_logic_vector(18 downto 0);
 
 begin
 
+		s_mult <= shift_right(s_data_i * c_vfs,17);
+		s_data_o <= std_logic_vector(s_mult(18 downto 0) - c_vfs);
 
-s_mult <= shift_right(s_data_i * c_vfs,17);
-s_data_o <= std_logic_vector(s_mult(18 downto 0) - c_vfs);
-
-
--- registro entrada y salida
-process(clk_i,data_i, s_data_o)
+process(clk_i)
 begin
-	if rising_edge(clk_i)then
-		s_data_i <= signed('0' & data_i);
-		data_o <= std_logic_vector(s_data_o);
+	if rising_edge(clk_i) then
+		s_data_i <=  signed('0' & data_i);
+--		s_mult <= shift_right(s_data_i * c_vfs,17);
+--		s_data_o <= std_logic_vector(s_mult(18 downto 0) - c_vfs);
+		data_o <= s_data_o;
 	end if;
 end process;
 
-fsm	:process(present_state, data_i_en)
+
+fsm	:process(present_state, data_i_en, data_i)
 begin
 
 case present_state is
@@ -85,16 +88,19 @@ case present_state is
 		else
 			next_state <= e0;
 		end if;
-	
-	when e1 =>
-		data_o_en <= '1';
-		next_state <= e0;
 		
+	when e1 => next_state <= e2;
 	
+	when e2 =>
+		data_o_en <= '1';
+	   next_state <= e3;
+	
+	when e3 => 
+		
+		next_state <= e0;
+
 	when others => next_state <= e0;
 end case;
-
-
 end process;
 
 

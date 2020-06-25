@@ -46,7 +46,7 @@ architecture Behavioral of pulse_stretcher is
 	constant divisor	:	integer := FREQ_IN/(FREQ_OUT*2);
 
 
-	type state is (e0,e1);
+	type state is (e0,e1,e2);--,e3,e4);--,e5,e6,e7,e8,e9,e10);
 	signal present_state, next_state : state;
 	
 	signal	s_pulse_in	:	std_logic;
@@ -79,11 +79,41 @@ case present_state is
 		end if;
 	
 	when e1 =>
+		next_state <= e2;
+		
+--	when e2 =>
+--		next_state <= e3;
+--	
+--	when e3 =>
+--		next_state <= e4;
+		
+--	when e4 =>
+--		next_state <= e5;
+--		
+--	when e5 =>
+--		next_state <= e6;
+--		
+--	when e6 =>
+--		next_state <= e7;
+--		
+--	when e7 =>
+--		next_state <= e8;
+--		
+--	when e8 =>
+--		next_state <= e9;
+--		
+--	when e9 =>
+--		next_state <= e10;
+--		
+--	when e10 =>
+--		next_state <= e0;
+		
+	when e2 =>
 		s_clk_o <= '1';
 		if(i = divisor) then
 			next_state <= e0;
 		else 
-			next_state <= e1;
+			next_state <= e2;
 		end if;
 		
 	when others => next_state <= e0;

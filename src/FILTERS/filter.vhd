@@ -181,7 +181,7 @@ ARCHITECTURE rtl OF filter IS
 BEGIN
 
   -- Block Statements
-  input_reg_process : PROCESS (clk, reset)
+  input_reg_process : PROCESS (clk, reset, clk_enable)
   BEGIN
     IF reset = '1' THEN
       input_register <= (OTHERS => '0');
@@ -204,7 +204,7 @@ BEGIN
       ELSE (49 => '1', OTHERS => '0') WHEN a1sum1(83) = '1' AND a1sum1(82 DOWNTO 79) /= "1111"
       ELSE (resize(shift_right(a1sum1(79 DOWNTO 0) + ( "0" & (a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30) & NOT a1sum1(30))), 30), 50));
 
-  delay_process_section1 : PROCESS (clk, reset)
+  delay_process_section1 : PROCESS (clk, reset, clk_enable)
   BEGIN
     IF reset = '1' THEN
       delay_section1 <= (OTHERS => (OTHERS => '0'));
@@ -272,7 +272,7 @@ BEGIN
       ELSE (49 => '1', OTHERS => '0') WHEN a1sum2(83) = '1' AND a1sum2(82 DOWNTO 79) /= "1111"
       ELSE (resize(shift_right(a1sum2(79 DOWNTO 0) + ( "0" & (a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30) & NOT a1sum2(30))), 30), 50));
 
-  delay_process_section2 : PROCESS (clk, reset)
+  delay_process_section2 : PROCESS (clk, reset,clk_enable)
   BEGIN
     IF reset = '1' THEN
       delay_section2 <= (OTHERS => (OTHERS => '0'));
@@ -340,7 +340,7 @@ BEGIN
       ELSE (49 => '1', OTHERS => '0') WHEN a1sum3(83) = '1' AND a1sum3(82 DOWNTO 79) /= "1111"
       ELSE (resize(shift_right(a1sum3(79 DOWNTO 0) + ( "0" & (a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30) & NOT a1sum3(30))), 30), 50));
 
-  delay_process_section3 : PROCESS (clk, reset)
+  delay_process_section3 : PROCESS (clk, reset,clk_enable)
   BEGIN
     IF reset = '1' THEN
       delay_section3 <= (OTHERS => '0');
@@ -379,7 +379,7 @@ BEGIN
       ELSE (18 => '1', OTHERS => '0') WHEN b1sum3(83) = '1' AND b1sum3(82 DOWNTO 63) /= "11111111111111111111"
       ELSE (resize(shift_right(b1sum3(63 DOWNTO 0) + ( "0" & (b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45) & NOT b1sum3(45))), 45), 19));
 
-  Output_Register_process : PROCESS (clk, reset)
+  Output_Register_process : PROCESS (clk, reset,clk_enable)
   BEGIN
     IF reset = '1' THEN
       output_register <= (OTHERS => '0');

@@ -99,6 +99,7 @@ BEGIN
       -- hold reset state for 100 ns.
       wait for 100 ns;	
 		reset <= '1';
+		pulse_in <= '0';
       wait until rising_edge(clk);
 		reset <= '0';
 		wait until rising_edge(clk);
@@ -107,7 +108,24 @@ BEGIN
 				pulse_in <= '1';
 				wait until rising_edge(clk);
 				pulse_in <= '0';
-				wait for 2*delay;
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+								wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+								wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
+				wait until rising_edge(clk);
 		end loop;
 		
 		

@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    23:09:05 03/22/2020 
+-- Create Date:    19:30:03 06/24/2020 
 -- Design Name: 
--- Module Name:    send_data_test - Behavioral 
+-- Module Name:    signal_generator - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -19,27 +19,36 @@
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use ieee.numeric_std.all;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx primitives in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
 
 -- BLOQUE PARA PROBAR LA COMUNICACION
 
-entity send_data_test is
+entity signal_generator is
     Port ( i_clk 			: 	in  	STD_LOGIC;
            i_rst 			: 	in  	STD_LOGIC;
 			  i_start		:	in		STD_LOGIC;
 			  o_clk_test	:	out 	STD_LOGIC;
-           o_data 		: 	out	STD_LOGIC_VECTOR (17 downto 0);
+           o_data 		: 	out	STD_LOGIC_VECTOR (15 downto 0);
            o_data_ready : 	out  	STD_LOGIC);
-end send_data_test;
+end signal_generator;
 
-architecture Behavioral of send_data_test is
+architecture Behavioral of signal_generator is
 
 type states is (ini,e0,e1);
 
 -- SIGNAL DEFINITION
 signal present_state,next_state : states;
 --signal data : integer range 0 to 65535 := 0;
-signal data : unsigned(17 downto 0);-- := (others => '0');
+signal data : unsigned(15 downto 0);-- := (others => '0');
 signal i : integer range 0 to 100001 := 0;--3125 := 0;
 signal clk16 : std_logic := '0';
 --signal contador: integer range 0 to 78124 := 0;--Para 312.5khz
@@ -85,15 +94,15 @@ begin
 
 if rising_edge(clk16) then
 	if i_rst = '1' then
-		data <= to_unsigned(67072,18);
+		data <= X"0000";
 --		s_o_clk_test <= '0';
-	elsif data >= 195072 then
-		data <= to_unsigned(67072,18);
+	elsif data >= 65535 then
+		data <= X"0000";
 --	elsif i_start = '1' then
 --		data <= X"0055";
 	else
 --		data <= X"0055";
-		data <= data + to_unsigned(1,18);
+		data <= data + X"0001";
 	end if;
 end if;
 end process;
