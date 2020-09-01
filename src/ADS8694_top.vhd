@@ -587,7 +587,7 @@ uart: UART_Handler
 	);
 
 
-  ADS8694_i : ADS8694
+  ADS8694_Handler : ADS8694
   generic map (
     MISO_width => MISO_width,
     MOSI_width => MOSI_width
@@ -607,7 +607,7 @@ uart: UART_Handler
   );
 
 
-  fsm_ad8694_i : fsm_ad8694
+  SPI_Handler : fsm_ad8694
   generic map (
     MISO_width => MISO_width,
     MOSI_width => MOSI_width
