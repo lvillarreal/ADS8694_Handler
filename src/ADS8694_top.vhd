@@ -355,16 +355,16 @@ signal ads8694_data_received_ready	:	std_logic;
 	signal s_data_test_start		:	std_logic;
 	
 -- ADC DATA CONVERTER SIGNALS
-	signal s_dc_data_i		:	std_logic_vector(DATA_WIDTH-1 downto 0);
-	signal s_dc_data_i_en	:	std_logic;
-	signal s_dc_data_o		:	std_logic_vector(DATA_WIDTH downto 0);	-- 19 bits, formato fixdt(1,19,14)
-	signal s_dc_data_o_en	:	std_logic;
-	
--- DECONV DATA SIGNALS
-	signal	s_deconv_data_i		:	std_logic_vector(DATA_WIDTH downto 0); -- 19 bits, formato fixdt(1,19,14)
-	signal	s_deconv_data_i_en	:	std_logic;
-	signal	s_deconv_data_o		:	std_logic_vector(DATA_WIDTH-1 downto 0);
-	signal	s_deconv_data_o_en	:	std_logic;
+--	signal s_dc_data_i		:	std_logic_vector(DATA_WIDTH-1 downto 0);
+--	signal s_dc_data_i_en	:	std_logic;
+--	signal s_dc_data_o		:	std_logic_vector(DATA_WIDTH downto 0);	-- 19 bits, formato fixdt(1,19,14)
+--	signal s_dc_data_o_en	:	std_logic;
+--	
+---- DECONV DATA SIGNALS
+--	signal	s_deconv_data_i		:	std_logic_vector(DATA_WIDTH downto 0); -- 19 bits, formato fixdt(1,19,14)
+--	signal	s_deconv_data_i_en	:	std_logic;
+--	signal	s_deconv_data_o		:	std_logic_vector(DATA_WIDTH-1 downto 0);
+--	signal	s_deconv_data_o_en	:	std_logic;
 	
 	
 begin
@@ -374,17 +374,19 @@ begin
 	RX_test <= RX;	
 	TX_test <= s_uartHand_TX;
 	
-	led <=dato(7 downto 0) when sel='1' else "00000"&spi_dout_ready&dato(17)&dato(16);
+	led <=dato(7 downto 0);-- when sel='1' else "00000"&'1'&dato(17)&dato(16);
+	
 	sal_test <= dato;
+	
 	s_data_test_start <= s_uartHand_o_Comm_Ready;
 
 	--dato <= ads8694_data_received;
 	--dato <= s_filter_out(18 downto 1);
 	
-	with select_filter select dato <=
-	s_filter_out(18 downto 1) when '0',
-	s_dc_data_o(18 downto 1)  when others;	
-	
+	--with select_filter select dato <=
+	--s_filter_out(18 downto 1) when '0',
+	--ads8694_data_received  when others;	
+	dato <= s_filter_out(18 downto 1);
 	
   -- SIGNAL INTERCONNECTION
   
@@ -420,11 +422,11 @@ begin
 
 -- DATA CONVERTER
    
-	s_dc_data_i <= 	ads8694_data_received	when	select_data_test = '0' else
-							s_data_test_data; --DEBUG
+--	s_dc_data_i <= 	ads8694_data_received	when	select_data_test = '0' else
+--							s_data_test_data; --DEBUG
 											
-	s_dc_data_i_en <= 	ads8694_data_received_ready	when	select_data_test = '0' else
-								s_data_test_data_Ready; --DEBUG							
+--	s_dc_data_i_en <= 	ads8694_data_received_ready	when	select_data_test = '0' else
+--								s_data_test_data_Ready; --DEBUG							
 								
 
 --	s_dc_data_i 		<= ads8694_data_received;
@@ -434,27 +436,40 @@ begin
 
 	s_filter_clk_enable	<= '1';
 
-	s_filter_in  <= s_dc_data_o;
-		
+	--s_filter_in  <= s_dc_data_o;
+	
+	--s_filter_in <= '0' & ads8694_data_received;	
+	
+	with select_data_test select s_filter_in <=
+	'0' & s_data_test_data when '0',
+	'0' & ads8694_data_received  when others;	
+	
 	s_filter_clk <= s_ps_clk_o;
 	
 -- PULSE STRETCHER
 
-	s_ps_pulse_in <= s_dc_data_o_en;
+	s_ps_pulse_in <= ads8694_data_received_ready;
 
 -- DATA DECONVERTER
 	
-	s_deconv_data_i_en <= s_dc_data_o_en;
+--	s_deconv_data_i_en <= s_dc_data_o_en;
 	
-	with select_filter select s_deconv_data_i <=
-	s_filter_out when '0',
-	s_dc_data_o  when others;
+--	with select_filter select s_deconv_data_i <=
+--	s_filter_out when '0',
+--	s_dc_data_o  when others;
 
 
 -- DATA BUFFER
 
-	s_datBuff_i_data_en	<=	s_deconv_data_o_en;
-	s_datBuff_i_data		<= s_deconv_data_o(DATA_WIDTH-1 downto DATA_WIDTH-16);
+	s_datBuff_i_data_en	<=	ads8694_data_received_ready;
+	
+	--s_datBuff_i_data		<= s_deconv_data_o(DATA_WIDTH-1 downto DATA_WIDTH-16);
+	
+	with select_filter select s_datBuff_i_data <=
+	s_filter_out(17 downto 2) when '0',
+	ads8694_data_received(17 downto 2)  when others;
+   	
+	--s_datBuff_i_Data <= s_filter_out(17 downto 2); 
 		
 	s_datBuff_i_uart_busy 		<= s_uartHand_o_TX_Busy;
 	s_datBuff_i_comm_control	<= s_uartHand_o_Comm_Ready;
@@ -495,18 +510,18 @@ begin
 
 
 -- DATA DECONVERTER
-	Inst_deconv_data: deconv_data 
-	GENERIC MAP(
-		V_FS => V_FS
-	)
-	PORT MAP(
-		clk_i => clk,
-		reset_i => reset,
-		data_i => s_deconv_data_i,
-		data_i_en => s_deconv_data_i_en,
-		data_o => s_deconv_data_o,
-		data_o_en => s_deconv_data_o_en
-	);
+--	Inst_deconv_data: deconv_data 
+--	GENERIC MAP(
+--		V_FS => V_FS
+--	)
+--	PORT MAP(
+--		clk_i => clk,
+--		reset_i => reset,
+--		data_i => s_deconv_data_i,
+--		data_i_en => s_deconv_data_i_en,
+--		data_o => s_deconv_data_o,
+--		data_o_en => s_deconv_data_o_en
+--	);
 
 
 -- PULSE STRETCHER
@@ -523,7 +538,7 @@ begin
 	);	
 	
 -- IIR FILTER
-   IIR_FILTER: filter PORT MAP (
+   LPF_IIR: filter PORT MAP (
           clk => s_filter_clk,
           clk_enable => s_filter_clk_enable,
           reset => reset,
@@ -533,18 +548,18 @@ begin
 	
 
 -- ADC DATA CONVERTER
-	Inst_data_convert: data_convert 
-	GENERIC MAP(
-		V_FS =>	V_FS	
-	)
-	PORT MAP(
-		clk_i => clk,
-		reset_i => reset,
-		data_i => s_dc_data_i,
-		data_i_en => s_dc_data_i_en,
-		data_o => s_dc_data_o,
-		data_o_en => s_dc_data_o_en
-	);
+--	Inst_data_convert: data_convert 
+--	GENERIC MAP(
+--		V_FS =>	V_FS	
+--	)
+--	PORT MAP(
+--		clk_i => clk,
+--		reset_i => reset,
+--		data_i => s_dc_data_i,
+--		data_i_en => s_dc_data_i_en,
+--		data_o => s_dc_data_o,
+--		data_o_en => s_dc_data_o_en
+--	);
 
 -- DATA BUFFER
 
@@ -586,6 +601,9 @@ uart: UART_Handler
 			RX					=>	s_uartHand_RX	
 	);
 
+
+
+-- ADS8694 HANDLER
 
   ADS8694_Handler : ADS8694
   generic map (
