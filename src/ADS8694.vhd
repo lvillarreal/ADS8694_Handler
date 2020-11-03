@@ -14,7 +14,6 @@ entity ADS8694 is
 				 data_in					:	in std_logic_vector(17 downto 0);	-- dato recibido por spi
 				 data_in_ready			:	in	std_logic;	-- indica que el dato recibido por spi esta listo
 				 spi_busy				:	in	std_logic;	-- indica que el modulo spi esta ocupado
-
 				 start 					: 	out std_logic;	-- comienza la transmision
 				 data_out				:	out std_logic_vector(15 downto 0);	-- dato que se quiere enviar por spi
 				 --sclk 					: 	out STD_LOGIC;	-- clock para el modulo spi
@@ -70,7 +69,7 @@ BEGIN
 	--		data_out <= "0000101100000000";  --comando para seleccionar +-2.5 Vref
 	--		data_out <= "0000101100000010";	--comando para seleccionar +-0.625Vref
 
-			if spi_busy = '0' then	-- modulo spi disponble para transmitir
+			if spi_busy = '0' then	-- modulo spi disponble para transmitir.
 				next_state <= e0;
 			else
 				next_state <= present_state;
@@ -91,7 +90,7 @@ BEGIN
 			end if;
 
 		when e1 =>
-		  start <= '0';
+			start <= '0';
 			data_out <= X"C000";	-- selecciona ch0
 			next_state <= e0;
 			

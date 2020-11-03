@@ -69,6 +69,7 @@ signal next_state : states;
 signal i : integer range 0 to 13 := 0;
 
 
+constant NAK				:	std_logic_vector(7 downto 0)	:= X"15";	
 constant STX				:	std_logic_vector(7 downto 0)	:=	X"02";
 constant ACK   			: 	std_logic_vector(7 downto 0) 	:= X"06";
 constant LF					:  std_logic_vector(7 downto 0)	:= X"0A";
@@ -118,6 +119,9 @@ begin
 					i <= 8;
 				when s_disconnect =>
 					i <= 11;
+				--when s_NAK			=>
+				--	i <= 14;
+
 				
 				
 				when others 		=>
@@ -146,7 +150,9 @@ begin
 				if i_RX_ready = '1' then
 					if i_RX_Byte = STX then
 						next_state <= s_control;
-					else 
+					--elsif i_RX_Byte = STX and i_conn_succ = '0' then
+					--	next_state <= s_NAK;
+					else
 						next_state <= s_reset;
 					end if;
 				else
@@ -210,9 +216,17 @@ begin
 						next_state <= s_VREF_LSB;
 					when 13 =>		-- viene de S_VREF_LSB
 						next_state <= s_EOT;
+				--	when 14 =>		-- el pcb esta desconectado. responde NAK y vuelve a inicio
+				--		next_state <= s_INIT;
 				end case;
 				
-		
+		-- responde con NAK
+	--	when s_NAK =>
+	--			o_rd <= '0';
+	--			o_TX_Byte  <= NAK;
+	--			o_TX_Ready <= '1';
+	--			next_state <= s_waitTX;
+				
 		-- Responde con ACK
 		when s_ACK =>
 				o_rd <= '0';

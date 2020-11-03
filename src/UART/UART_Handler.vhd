@@ -101,7 +101,6 @@ architecture Behavioral of UART_Handler is
 	signal s_CommControl_i_RX_byte  : std_logic_vector(7 downto 0);
 	signal s_CommControl_i_RX_ready : std_logic;
 	signal s_CommControl_i_TX_done  : std_logic;
-		
 	signal s_CommControl_o_TX_byte  : std_logic_vector(7 downto 0);
 	signal s_CommControl_o_TX_ready : std_logic;
 	signal s_CommControl_control 	  : std_logic;
@@ -136,7 +135,6 @@ Comm_Control_INST: Comm_Control
 		i_RX_Byte	=>	s_CommControl_i_RX_byte,
 		i_RX_ready	=>	s_CommControl_i_RX_ready,
 		i_TX_Done	=>	s_CommControl_i_TX_done,
-		
 		o_TX_Byte	=> s_CommControl_o_TX_byte,
 		o_TX_ready	=> s_CommControl_o_TX_ready,	
 		o_rd			=>	s_CommControl_o_rd,
@@ -179,6 +177,7 @@ Inst_uart: uart
 
 	
 	s_CommControl_i_TX_done    <=  s_uart_TDR;	
+
 	
 	o_TX_Ready		<=	s_uart_TBE;
 	o_Comm_Ready	<=	s_CommControl_control;

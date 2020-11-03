@@ -339,6 +339,8 @@ signal ads8694_data_received_ready	:	std_logic;
 	signal s_uartHand_i_TX_Byte		:	std_logic_vector(7 downto 0);
 	signal s_uartHand_i_TX_ready		:	std_logic;
 	
+	signal s_uartHand_i_conn_succ		:	std_logic;
+	
 	signal s_uartHand_o_RX_Byte		:	std_logic_vector(7 downto 0);
 	signal s_uartHand_o_RX_Ready		:	std_logic;
 	
@@ -393,6 +395,7 @@ begin
   
   --data_received <=  ads8694_data_received;
 
+
   ads8694_clk           	<=  clk_l1;
   ads8694_reset         	<=  reset;
   
@@ -419,6 +422,7 @@ begin
 -- UART
 	TX					<=	s_uartHand_TX;
 	s_uartHand_RX 	<= RX;
+	
 
 -- DATA CONVERTER
    
