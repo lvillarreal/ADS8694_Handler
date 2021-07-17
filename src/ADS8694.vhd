@@ -14,10 +14,12 @@ entity ADS8694 is
 				 data_in					:	in std_logic_vector(17 downto 0);	-- dato recibido por spi
 				 data_in_ready			:	in	std_logic;	-- indica que el dato recibido por spi esta listo
 				 spi_busy				:	in	std_logic;	-- indica que el modulo spi esta ocupado
+				 pwr_down_in			:  in	STD_LOGIC;	-- CommControl indica si adc se enciende('1') o apaga	('0')
 				 start 					: 	out std_logic;	-- comienza la transmision
 				 data_out				:	out std_logic_vector(15 downto 0);	-- dato que se quiere enviar por spi
 				 --sclk 					: 	out STD_LOGIC;	-- clock para el modulo spi
 				 data_received			:	out std_logic_vector(17 downto 0);	-- dato recibido por spi
+				 pwr_down_out			:	out std_logic;	
 				 data_received_ready	:	out std_logic
 				 );
 
@@ -25,7 +27,7 @@ end ADS8694;
 
 architecture Behavioral of ADS8694 is
 
-type 	state_type is (ini,e0,e1);
+type 	state_type is (ini,e0,e1,e2);
 
 -- componentes
 
@@ -55,7 +57,7 @@ end process;
 
 
 -- fsm
-proc1 : PROCESS (present_state,spi_busy) IS
+proc1 : PROCESS (present_state,spi_busy,pwr_down_in) IS
 
 
 BEGIN
@@ -66,27 +68,41 @@ BEGIN
 	
 			start <= '0';
 			data_out <= X"C000";
+			pwr_down_out <= '0';
 	--		data_out <= "0000101100000000";  --comando para seleccionar +-2.5 Vref
 	--		data_out <= "0000101100000010";	--comando para seleccionar +-0.625Vref
-
-			if spi_busy = '0' then	-- modulo spi disponble para transmitir.
-				next_state <= e0;
+			
+			if(pwr_down_in = '1') then
+				next_state <= e2;
 			else
-				next_state <= present_state;
+				next_state <= ini;
 			end if;
+
 
 	-- Se transmite
 --		when e0 =>
 --			start <= '1';
 --			next_state <= e1;
 
+		when e2 =>
+			pwr_down_out <= '1';
+			data_out <= X"C000";
+			if pwr_down_in = '0' then
+				next_state <= ini;
+			elsif spi_busy = '0' then	-- modulo spi disponble para transmitir.
+				next_state <= e0;
+			else
+				next_state <= e2;
+			end if;
+
 		when e0 =>
+			pwr_down_out <= '1';
 		   start <= '1';
 
 			if spi_busy = '0' then -- el modulo spi termino la transmision y ya esta listo el dato de respuesta
 				next_state <= e1;
 			else
-				next_state <= present_state;
+				next_state <= e0;
 			end if;
 
 		when e1 =>

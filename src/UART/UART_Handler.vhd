@@ -39,6 +39,8 @@ entity UART_Handler is
 			o_TX_Ready		:	out std_logic;  							-- modulo listo para transmitir  
 			o_Comm_Ready	:	out std_logic;	 							-- '1' conexion establecida con Serial Plotter. Si es '1' se puede enviar dato por uart
 			
+			o_pwr_down		:	out std_logic;								-- '1' para encender adc, '0' para apagar
+		
 			TX					: 	out std_logic;
 			RX					:	in	 std_logic;
 			
@@ -169,7 +171,9 @@ Inst_uart: uart
 
 
 -- INTERCONECCION DE COMPONENTES
-
+	
+	o_pwr_down <= s_CommControl_control;
+	
 	s_uart_RD <= s_CommControl_o_rd;
 	
 	s_CommControl_i_RX_byte		<= s_uart_DBOUT;

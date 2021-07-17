@@ -18,6 +18,7 @@ entity ADS8694_top is
         SCLK          : out std_logic;
         CS            : out std_logic;
 		  
+		  PWR_DWN		 : out std_logic;
 		  -- UART
 		  TX				 : out std_logic;
 		  RX				 :	in std_logic;
@@ -25,12 +26,13 @@ entity ADS8694_top is
 
        -- data_received : out std_logic_vector(17 downto 0);
 
+
+		  
+		  -- salidas/entradas adicionales para debug
 		  an 			   : out  STD_LOGIC_VECTOR (3 downto 0);
         seg 			: out  STD_LOGIC_VECTOR (7 downto 0);
 		  led0			: out  STD_LOGIC;
 		  led1			: out  STD_LOGIC;
-		  
-		  -- salidas/entradas adicionales para debug
   		  RX_test			: out std_logic;
 		  TX_test			: out std_logic;
 		  select_filter 	: in 	std_logic;
@@ -62,7 +64,7 @@ architecture Behavioral  of ADS8694_top  is
 
  	COMPONENT deconv_data
 	GENERIC(
-		V_FS : integer := 167772	-- valor de fondo de escala, en representacion fixdt(1,19,14), en este caso 10.24*2^14 
+		V_FS : integer := 167772	-- valor de fondo de escala, en representacion fixdt(1,19,14), en este caso 10.24*2^14 (se multiplica por 2^14 xq tiene 14 decimales, luego se divide por ese valor para obtener los decimales)
 	 );
 	PORT(
 		clk_i : IN std_logic;
@@ -152,6 +154,8 @@ component UART_Handler
 			o_RX_Byte		:	out std_logic_vector(7 downto 0);
 			o_RX_Ready		:	out std_logic;	-- el dato recibido esta listo
 			
+			o_pwr_down		:	out std_logic;
+			
 			o_TX_Busy		:	out std_logic;	 -- modulo transmitiendo
 			o_TX_Ready		:	out std_logic;  -- modulo listo para transmitir  
 			o_Comm_Ready	:	out std_logic;	-- '1' conexion establecida con Serial Plotter
@@ -214,10 +218,12 @@ end component fsm_ad8694;
       data_in       			: in  std_logic_vector(MISO_width-1 downto 0);
       data_in_ready 			: in  std_logic;
       spi_busy      			: in  std_logic;
+		pwr_down_in				:  in	STD_LOGIC;
       start         			: out std_logic;
       data_out      			: out std_logic_vector(MOSI_width-1 downto 0);
       --sclk          			: out STD_LOGIC;
       data_received 			: out std_logic_vector(MISO_width-1 downto 0);
+		pwr_down_out			: out	STD_LOGIC;
 		data_received_ready	: out std_logic
     );
     end component ADS8694;
@@ -308,6 +314,11 @@ signal ads8694_data_out      			: 	std_logic_vector(MOSI_width-1 downto 0);
 --signal ads8694_sclk          			: 	STD_LOGIC;
 signal ads8694_data_received 			: 	std_logic_vector(MISO_width-1 downto 0);
 signal ads8694_data_received_ready	:	std_logic;
+signal ads8694_in_pwr_down				:	std_logic;
+signal ads8694_out_pwr_down			: 	std_logic;
+
+
+
 
 --signal ads8694_an            : STD_LOGIC_VECTOR (3 downto 0);
 --signal ads8694_seg           : STD_LOGIC_VECTOR (7 downto 0);
@@ -334,7 +345,7 @@ signal ads8694_data_received_ready	:	std_logic;
 	signal s_datBuff_o_byte 			: 	std_logic_vector(7 downto 0);
 	signal s_datBuff_o_byte_ready 	:	std_logic;
 	
--- UART SIGNALS
+-- UART HANDLER SIGNALS
 
 	signal s_uartHand_i_TX_Byte		:	std_logic_vector(7 downto 0);
 	signal s_uartHand_i_TX_ready		:	std_logic;
@@ -348,8 +359,10 @@ signal ads8694_data_received_ready	:	std_logic;
 	signal s_uartHand_o_TX_Ready		: 	std_logic;
 	signal s_uartHand_o_Comm_Ready	:	std_logic;
 		
-	signal s_uartHand_TX		:	std_logic;
-	signal s_uartHand_RX		:	std_logic;
+	signal s_uartHand_TX					:	std_logic;
+	signal s_uartHand_RX					:	std_logic;
+	
+	signal s_uartHand_pwr_down			:	std_logic;
 
 -- DATA TEST SIGNALS	
 	signal s_data_test_data_Ready : 	std_logic;
@@ -394,6 +407,9 @@ begin
   
   
   --data_received <=  ads8694_data_received;
+
+  PWR_DWN	<=		ads8694_out_pwr_down;
+  ads8694_in_pwr_down <= s_uartHand_pwr_down;
 
 
   ads8694_clk           	<=  clk_l1;
@@ -596,6 +612,8 @@ uart: UART_Handler
 			o_RX_Byte		=> s_uartHand_o_RX_Byte,
 			o_RX_Ready		=> s_uartHand_o_RX_Ready,
 			
+			o_pwr_down     => s_uartHand_pwr_down,
+			
 			o_TX_Busy		=> s_uartHand_o_TX_Busy,
 			o_TX_Ready		=> s_uartHand_o_TX_Ready,  
 			o_Comm_Ready	=>	s_uartHand_o_Comm_Ready,
@@ -622,9 +640,11 @@ uart: UART_Handler
     data_in_ready 		=> ads8694_data_in_ready,
     spi_busy      		=> ads8694_spi_busy,
     start         		=> ads8694_start,
+	 pwr_down_in			=> ads8694_in_pwr_down,
     data_out      		=> ads8694_data_out,
     --sclk          		=> ads8694_sclk,
     data_received 		=> ads8694_data_received,
+	 pwr_down_out			=>	ads8694_out_pwr_down,
 	 data_received_ready	=>	ads8694_data_received_ready
   );
 

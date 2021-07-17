@@ -51,7 +51,7 @@ entity Comm_Control is
 		o_rd			:	out std_logic;								-- rd del bloque uart
 		o_TX_Byte	:	out std_logic_vector(7 downto 0);	--	byte a transmitir
 		o_TX_ready	:	out std_logic;								-- '1' para indicar que el dato esta listo para enviar
-		
+				
 		led			:  out std_logic_vector(7 downto 0);	-- debug
 		
 		
@@ -146,7 +146,7 @@ begin
 				o_TX_Byte <= X"00";
 				o_TX_Ready <= '0';
 				o_rd <= '0';
-
+				
 				if i_RX_ready = '1' then
 					if i_RX_Byte = STX then
 						next_state <= s_control;
@@ -319,6 +319,7 @@ begin
 				end if;		
 		
 		when s_disconnect =>
+				o_control <= '0';
 				next_state <= s_reset;
 		
 		when others =>
