@@ -27,7 +27,9 @@
 --------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
- 
+library std;
+use std.textio.all;
+USE ieee.numeric_std.ALL;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
@@ -40,53 +42,86 @@ ARCHITECTURE behavior OF send_data_test_tb IS
     -- Component Declaration for the Unit Under Test (UUT)
  
     COMPONENT send_data_test
-    PORT(
-         i_clk : IN  std_logic;
-         i_rst : IN  std_logic;
-         o_data : OUT  std_logic_vector(15 downto 0);
-         o_data_ready : OUT  std_logic
-        );
-    END COMPONENT;
+	 GENERIC(
+		N : integer := 200);
+	PORT(
+		i_clk 			:	IN std_logic;
+		i_rst 			:	IN std_logic;  
+		i_start 			: 	IN std_logic;	
+		o_clk_test		:	out std_logic;
+		o_data 			: 	OUT std_logic_vector(17 downto 0);
+		o_data_ready 	:	OUT std_logic
+		);
+	END COMPONENT;
     
 
    --Inputs
-   signal i_clk : std_logic := '0';
-   signal i_rst : std_logic := '0';
+   signal s_clk : std_logic := '0';
+   signal s_rst : std_logic := '0';
 
  	--Outputs
-   signal o_data : std_logic_vector(15 downto 0);
-   signal o_data_ready : std_logic;
+   signal s_o_data : std_logic_vector(17 downto 0);
+   signal s_o_data_ready : std_logic;
 
    -- Clock period definitions
    constant i_clk_period : time := 10 ns;
  
+ 	type IntFile is file of integer;	
+	file f_resul : IntFile;
+ 
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: send_data_test PORT MAP (
-          i_clk => i_clk,
-          i_rst => i_rst,
-          o_data => o_data,
-          o_data_ready => o_data_ready
+   uut: send_data_test 
+	GENERIC MAP (
+		N => 200
+	)
+	PORT MAP (
+          i_clk => s_clk,
+          i_rst => s_rst,
+          o_data => s_o_data,
+			 i_start => '1',
+          o_data_ready => s_o_data_ready
         );
 
    -- Clock process definitions
    i_clk_process :process
    begin
-		i_clk <= '0';
+		s_clk <= '0';
 		wait for i_clk_period/2;
-		i_clk <= '1';
+		s_clk <= '1';
 		wait for i_clk_period/2;
    end process;
  
+process(s_o_data_ready)
 
-   -- Stimulus process
+      variable status : file_open_status;
+begin
+		
+		if rising_edge(s_o_data_ready) then
+			file_open(status,f_resul,"C:/Users/lucia/OneDrive/Documentos/send_data_test_file.bin",append_mode);
+			assert status=open_ok
+			report "No se pudo crear send_data_test_file.bin"
+			severity failure;
+			write(f_resul,to_integer(unsigned(s_o_data)));
+			
+			File_Close(f_resul);
+		end if;
+		
+end process;
+
+
+--   Stimulus process
    stim_proc: process
+		
    begin		
-      -- hold reset state for 100 ns.
-      wait for 100 ns;	
-
-      wait for i_clk_period*10;
+		
+	
+      --hold reset state for 100 ns.
+      s_rst <= '1';
+		wait for 100 ns;	
+		s_rst <= '0';
+      wait for 1000 ms;
 
       -- insert stimulus here 
 

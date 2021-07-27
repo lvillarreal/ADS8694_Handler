@@ -50,6 +50,8 @@ architecture Behavioral  of ADS8694_top  is
 -- components definition
 
 	COMPONENT send_data_test
+	GENERIC(
+		N : integer := 2);
 	PORT(
 		i_clk 			:	IN std_logic;
 		i_rst 			:	IN std_logic;  
@@ -291,6 +293,8 @@ signal dato : std_logic_vector(MISO_width-1 downto 0);
 --signal  s_dout_ready,s_busy,s_start,s_sclk  : std_logic;
 --signal  s_data_received                     : std_logic_vector(MISO_width-1 downto 0);
 
+signal s_test_or_data 		: std_logic_vector(15 downto 0);
+
 signal spi_clk     			: STD_LOGIC;
 signal spi_reset     		: STD_LOGIC;
 signal spi_data_in 			: STD_LOGIC_VECTOR (MOSI_width-1 downto 0);
@@ -468,7 +472,11 @@ begin
 	
 -- PULSE STRETCHER
 
-	s_ps_pulse_in <= ads8694_data_received_ready;
+	with select_data_test select s_ps_pulse_in <=
+	s_data_test_data_Ready when '0',
+	ads8694_data_received_ready  when others;	
+
+--	s_ps_pulse_in <= ads8694_data_received_ready;
 
 -- DATA DECONVERTER
 	
@@ -485,9 +493,14 @@ begin
 	
 	--s_datBuff_i_data		<= s_deconv_data_o(DATA_WIDTH-1 downto DATA_WIDTH-16);
 	
+	
+	with select_data_test select s_test_or_data <=
+	s_data_test_data(17 downto 2) when '0',
+	ads8694_data_received(17 downto 2)  when others;
+	
 	with select_filter select s_datBuff_i_data <=
 	s_filter_out(17 downto 2) when '0',
-	ads8694_data_received(17 downto 2)  when others;
+	s_test_or_data  when others;
    	
 	--s_datBuff_i_Data <= s_filter_out(17 downto 2); 
 		
@@ -519,7 +532,11 @@ begin
 -- INSTANCIACIONES
 
 -- DATA TEST
-	Inst_send_data_test: send_data_test PORT MAP(
+	Inst_send_data_test: send_data_test 
+	GENERIC MAP (
+		N => 2
+	)
+	PORT MAP(
 		i_clk => clk,
 		i_rst => reset,
 		i_start => s_data_test_start,
