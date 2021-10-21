@@ -42,7 +42,6 @@ entity frequency_divisor is
 architecture Behavioral of frequency_divisor is
 
 signal temporal: STD_LOGIC;
---signal contador: integer range 0 to 78124 := 0;--Para 312.5khz
 
 signal contador: integer range 0 to 156294 := 0;--Para 625khz (tomado del clk que va de entrada a los filtros)
 

@@ -53,9 +53,6 @@ type state is (s_ini,s_envByte1,s_wait,s_envByte2);
 
 signal present_state, next_state : state;
 
---signal ram_mem is array (0 to 1023) of std_logic_vector(DATA_WIDTH-1 downto 0);
---signal ram_index     	: 	integer range -1 to 1023 := -1;	-- -1 si no hay dato. Indica cuantos datos hay en cola para enviar. 
-
 signal data_buffer	:	std_logic_vector(DATA_WIDTH-1 downto 0);
 
 begin
