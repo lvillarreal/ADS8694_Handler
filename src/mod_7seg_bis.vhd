@@ -48,7 +48,6 @@ signal cuenta_aux 	: unsigned(16 downto 0);
 signal dat_aux   : std_logic_vector(32 downto 0);
 signal an0_aux,an1_aux,an2_aux,an3_aux : std_logic;
 signal fin_cuenta	: std_logic;
---attribute clock_signal of clk_aux : signal is "yes";
 constant 	divisor_clk : unsigned(16 downto 0):= "11000011010100000" ;
 
 
@@ -70,16 +69,6 @@ if(clk'event and clk='1') then
 				end if;
 end if;
 end process;
---process(fin_cuenta,clk,rst)
---begin
---if(clk'event and clk='1' ) then
---	if rst='1' then
---			clk_aux   <= '0';
---	elsif fin_cuenta='1' then 
---			clk_aux <= not clk_aux;
---	end if;
---end if;
---end process;
 
 
 -- proceso de refresco

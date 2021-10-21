@@ -128,7 +128,6 @@ Comm_Control_INST: Comm_Control
     
    generic map(
 		g_SAMPLE_RATE	=> SAMPLE_RATE,
-		--g_SAMPLE_RATE  => X"0030D4",	-- 12.5 ksps
 		g_CANT_BITS		=> X"12"			-- 18 bits
 	)      
     port map (
@@ -186,7 +185,7 @@ Inst_uart: uart
 	o_TX_Ready		<=	s_uart_TBE;
 	o_Comm_Ready	<=	s_CommControl_control;
 	
-	s_uart_rst 		<= i_rst;-- or s_CommControl_o_rd; 
+	s_uart_rst 		<= i_rst; 
 	
 	s_uart_RX		<=	RX;
 	TX					<=	s_uart_TX;

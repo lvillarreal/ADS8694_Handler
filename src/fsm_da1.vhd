@@ -65,12 +65,10 @@ sclk <=  clk;
 
 --Dato que se va a enviar al conversor
 
---data_in<= "00"&x"C000";
 proc_1: process(present_state,i,start,dato_aux,dato_out)
 	 begin
      case present_state is
        	when ini =>     --Reset state
---					dato_aux<="00"&x"AA00";
 					cs <='1';
 					cnt_rst <='1';
 					fin<='0';
@@ -86,7 +84,6 @@ proc_1: process(present_state,i,start,dato_aux,dato_out)
 					cnt_rst <='1';
 					fin<='0';
 					busy <= '1';
---					dato_aux(17)<=MOSI;
 					next_state <= e1;
 
 --
@@ -95,7 +92,6 @@ proc_1: process(present_state,i,start,dato_aux,dato_out)
 					cs <='0';
 					cnt_rst <='0';
 					fin<='0';
---					dato_aux(17-i)<= MOSI;
 					MOSI <= dato_aux(15-i);
 
 					if i=15 then
@@ -117,17 +113,9 @@ proc_1: process(present_state,i,start,dato_aux,dato_out)
 					end if;
 
         when e3 =>
+					cs <= '1';
 					next_state <= e4;
 
---					cs <='0';
---					cnt_rst <='0';
-
---					fin<='0';
---					if i=34 then
---						next_state <= e4;
---					else
---						next_state <= e3;
---					end if;
        when e4 =>
 					cs <='1';
 					cnt_rst <='1';
@@ -167,18 +155,7 @@ proc_3: process(CLk, reset,present_state,cnt_rst,i)  -- update the state of FSM
 		end if;
 	end if;
 end process proc_3;
--- Envio de datos de configuracion del ADC
---proc_4:process(clk, reset,i,dato_aux,present_state)
---begin
---	if rising_edge(clk) then
---		if reset='1' then
---		MOSI <= '0';
---		elsif ( present_state=e1) then
---		MOSI <= dato_aux(16-i);
---		end if;
---	end if;
---end process;
--- Envio de datos de configuracion del ADC
+
 proc_5:process(clk, reset,i,MISO,present_state)
 begin
 	if falling_edge(clk) then

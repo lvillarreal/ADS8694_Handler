@@ -75,7 +75,6 @@ constant ACK   			: 	std_logic_vector(7 downto 0) 	:= X"06";
 constant LF					:  std_logic_vector(7 downto 0)	:= X"0A";
 constant EOT				:	std_logic_vector(7 downto 0)	:= X"04";
 constant ENQ				:	std_logic_vector(7 downto 0)	:= X"05";
---	constant VREF				:	std_logic_vector(15 downto 0) := X"0A00";	--2560 para indicar Vref de +-2.56V
 constant VREF				:	std_logic_vector(15 downto 0) := X"2800";	--10240 para indicar Vref de +-10.24V
 
 begin
@@ -119,10 +118,6 @@ begin
 					i <= 8;
 				when s_disconnect =>
 					i <= 11;
-				--when s_NAK			=>
-				--	i <= 14;
-
-				
 				
 				when others 		=>
 					i <= i;
@@ -150,8 +145,6 @@ begin
 				if i_RX_ready = '1' then
 					if i_RX_Byte = STX then
 						next_state <= s_control;
-					--elsif i_RX_Byte = STX and i_conn_succ = '0' then
-					--	next_state <= s_NAK;
 					else
 						next_state <= s_reset;
 					end if;
@@ -216,16 +209,8 @@ begin
 						next_state <= s_VREF_LSB;
 					when 13 =>		-- viene de S_VREF_LSB
 						next_state <= s_EOT;
-				--	when 14 =>		-- el pcb esta desconectado. responde NAK y vuelve a inicio
-				--		next_state <= s_INIT;
 				end case;
 				
-		-- responde con NAK
-	--	when s_NAK =>
-	--			o_rd <= '0';
-	--			o_TX_Byte  <= NAK;
-	--			o_TX_Ready <= '1';
-	--			next_state <= s_waitTX;
 				
 		-- Responde con ACK
 		when s_ACK =>

@@ -36,11 +36,11 @@ entity ADS8694_top is
   		  RX_test			: out std_logic;
 		  TX_test			: out std_logic;
 		  select_filter 	: in 	std_logic;
-		  select_data_test: in	std_logic;
+--		  select_data_test: in	std_logic;
 		  sel 				: in  STD_LOGIC;
 		  led					: out STD_LOGIC_VECTOR (7 downto 0);
-		  sal_test			: out STD_LOGIC_VECTOR (17 downto 0);
-		  clk_test			: out std_logic
+		  sal_test			: out STD_LOGIC_VECTOR (17 downto 0)
+--		  clk_test			: out std_logic
 
   );
 end ADS8694_top;
@@ -49,18 +49,18 @@ architecture Behavioral  of ADS8694_top  is
 
 -- components definition
 
-	COMPONENT send_data_test
-	GENERIC(
-		N : integer := 2);
-	PORT(
-		i_clk 			:	IN std_logic;
-		i_rst 			:	IN std_logic;  
-		i_start 			: 	IN std_logic;	
-		o_clk_test		:	out std_logic;
-		o_data 			: 	OUT std_logic_vector(17 downto 0);
-		o_data_ready 	:	OUT std_logic
-		);
-	END COMPONENT;
+--	COMPONENT send_data_test
+--	GENERIC(
+--		N : integer := 2);
+--	PORT(
+--		i_clk 			:	IN std_logic;
+--		i_rst 			:	IN std_logic;  
+--		i_start 			: 	IN std_logic;	
+--		o_clk_test		:	out std_logic;
+--		o_data 			: 	OUT std_logic_vector(17 downto 0);
+--		o_data_ready 	:	OUT std_logic
+--		);
+--	END COMPONENT;
 
 -- DECONV DATA
 
@@ -369,9 +369,9 @@ signal ads8694_out_pwr_down			: 	std_logic;
 	signal s_uartHand_pwr_down			:	std_logic;
 
 -- DATA TEST SIGNALS	
-	signal s_data_test_data_Ready : 	std_logic;
-	signal s_data_test_data			: 	std_logic_vector(17 downto 0);
-	signal s_data_test_start		:	std_logic;
+--	signal s_data_test_data_Ready : 	std_logic;
+--	signal s_data_test_data			: 	std_logic_vector(17 downto 0);
+--	signal s_data_test_start		:	std_logic;
 	
 -- ADC DATA CONVERTER SIGNALS
 --	signal s_dc_data_i		:	std_logic_vector(DATA_WIDTH-1 downto 0);
@@ -390,14 +390,16 @@ begin
 
 --	DEBUG
 
-	RX_test <= RX;	
-	TX_test <= s_uartHand_TX;
+	RX_test <= MISO;	
+	TX_test <= spi_sclk;
+	sal_test(17) <= spi_mosi;
+	sal_test(16) <= spi_cs;
 	
 	led <=dato(7 downto 0);-- when sel='1' else "00000"&'1'&dato(17)&dato(16);
 	
-	sal_test <= dato;
+	sal_test(15 downto 0) <= dato(15 downto 0);
 	
-	s_data_test_start <= s_uartHand_o_Comm_Ready;
+--	s_data_test_start <= s_uartHand_o_Comm_Ready;
 
 	--dato <= ads8694_data_received;
 	--dato <= s_filter_out(18 downto 1);
@@ -462,21 +464,21 @@ begin
 
 	--s_filter_in  <= s_dc_data_o;
 	
-	--s_filter_in <= '0' & ads8694_data_received;	
+	s_filter_in <= '0' & ads8694_data_received;	
 	
-	with select_data_test select s_filter_in <=
-	'0' & s_data_test_data when '0',
-	'0' & ads8694_data_received  when others;	
+--	with select_data_test select s_filter_in <=
+--	'0' & s_data_test_data when '0',
+--	'0' & ads8694_data_received  when others;	
 	
 	s_filter_clk <= s_ps_clk_o;
 	
 -- PULSE STRETCHER
 
-	with select_data_test select s_ps_pulse_in <=
-	s_data_test_data_Ready when '0',
-	ads8694_data_received_ready  when others;	
+--	with select_data_test select s_ps_pulse_in <=
+--	s_data_test_data_Ready when '0',
+--	ads8694_data_received_ready  when others;	
 
---	s_ps_pulse_in <= ads8694_data_received_ready;
+	s_ps_pulse_in <= ads8694_data_received_ready;
 
 -- DATA DECONVERTER
 	
@@ -494,13 +496,13 @@ begin
 	--s_datBuff_i_data		<= s_deconv_data_o(DATA_WIDTH-1 downto DATA_WIDTH-16);
 	
 	
-	with select_data_test select s_test_or_data <=
-	s_data_test_data(17 downto 2) when '0',
-	ads8694_data_received(17 downto 2)  when others;
+--	with select_data_test select s_test_or_data <=
+--	s_data_test_data(17 downto 2) when '0',
+--	ads8694_data_received(17 downto 2)  when others;
 	
 	with select_filter select s_datBuff_i_data <=
 	s_filter_out(17 downto 2) when '0',
-	s_test_or_data  when others;
+	ads8694_data_received(17 downto 2)  when others;
    	
 	--s_datBuff_i_Data <= s_filter_out(17 downto 2); 
 		
@@ -532,18 +534,18 @@ begin
 -- INSTANCIACIONES
 
 -- DATA TEST
-	Inst_send_data_test: send_data_test 
-	GENERIC MAP (
-		N => 2
-	)
-	PORT MAP(
-		i_clk => clk,
-		i_rst => reset,
-		i_start => s_data_test_start,
-		o_clk_test	=>	clk_test,
-		o_data => s_data_test_data,
-		o_data_ready => s_data_test_data_Ready 
-	);
+--	Inst_send_data_test: send_data_test 
+--	GENERIC MAP (
+--		N => 2
+--	)
+--	PORT MAP(
+--		i_clk => clk,
+--		i_rst => reset,
+--		i_start => s_data_test_start,
+--		o_clk_test	=>	clk_test,
+--		o_data => s_data_test_data,
+--		o_data_ready => s_data_test_data_Ready 
+--	);
 
 
 -- DATA DECONVERTER

@@ -17,7 +17,6 @@ entity ADS8694 is
 				 pwr_down_in			:  in	STD_LOGIC;	-- CommControl indica si adc se enciende('1') o apaga	('0')
 				 start 					: 	out std_logic;	-- comienza la transmision
 				 data_out				:	out std_logic_vector(15 downto 0);	-- dato que se quiere enviar por spi
-				 --sclk 					: 	out STD_LOGIC;	-- clock para el modulo spi
 				 data_received			:	out std_logic_vector(17 downto 0);	-- dato recibido por spi
 				 pwr_down_out			:	out std_logic;	
 				 data_received_ready	:	out std_logic
@@ -27,7 +26,7 @@ end ADS8694;
 
 architecture Behavioral of ADS8694 is
 
-type 	state_type is (ini,e0,e1,e2);
+type 	state_type is (ini,e0,e1,e2,e3,e4);
 
 -- componentes
 
@@ -40,6 +39,15 @@ signal 	present_state,next_state   : state_type;
 signal dato: std_logic_vector(MISO_width-1 downto 0);
 signal s_data_in_ready	:	std_logic;
 
+
+constant commCH0: std_logic_vector(MOSI_width - 1 downto 0) := X"C000";
+constant commCH1: std_logic_vector(MOSI_width - 1 downto 0) := X"C400";
+constant commCH2: std_logic_vector(MOSI_width - 1 downto 0) := X"C800";
+constant commCH3: std_logic_vector(MOSI_width - 1 downto 0) := X"CC00";
+constant commAUTOSEC: std_logic_vector(MOSI_width - 1 downto 0) := X"A000";
+constant commRST: std_logic_vector(MOSI_width - 1 downto 0) := X"8500";
+constant commRW: std_logic_vector(MOSI_width - 1 downto 0) := X"1106";	--cambia input range ch3
+constant commRD: std_logic_vector(MOSI_width - 1 downto 0) := X"1000";
 begin
 
 data_received <= dato;
@@ -65,12 +73,9 @@ BEGIN
   CASE present_state IS
 
   	WHEN ini =>
-	
 			start <= '0';
-			data_out <= X"C000";
+			data_out <= X"0000";
 			pwr_down_out <= '0';
-	--		data_out <= "0000101100000000";  --comando para seleccionar +-2.5 Vref
-	--		data_out <= "0000101100000010";	--comando para seleccionar +-0.625Vref
 			
 			if(pwr_down_in = '1') then
 				next_state <= e2;
@@ -78,15 +83,15 @@ BEGIN
 				next_state <= ini;
 			end if;
 
-
-	-- Se transmite
---		when e0 =>
---			start <= '1';
---			next_state <= e1;
-
+		-- primer secuencia, se repite solo una vez
 		when e2 =>
 			pwr_down_out <= '1';
-			data_out <= X"C000";
+			start <= '0';
+			-- Como la configuracion por defecto es +-10.24V, no es estrictamente 
+			-- necesario enviar el comando para configurar el rango de entrada; por ello
+			-- se envia el comando de seleccion de canal3
+			data_out <= commCH3;		
+	
 			if pwr_down_in = '0' then
 				next_state <= ini;
 			elsif spi_busy = '0' then	-- modulo spi disponble para transmitir.
@@ -94,21 +99,33 @@ BEGIN
 			else
 				next_state <= e2;
 			end if;
-
+	
+	
 		when e0 =>
 			pwr_down_out <= '1';
 		   start <= '1';
-
+			data_out <= commCH3;
 			if spi_busy = '0' then -- el modulo spi termino la transmision y ya esta listo el dato de respuesta
 				next_state <= e1;
 			else
 				next_state <= e0;
 			end if;
 
+
 		when e1 =>
 			start <= '0';
-			data_out <= X"C000";	-- selecciona ch0
-			next_state <= e0;
+			data_out <= commCH3;
+			next_state <= e3;
+		
+		when e3 =>
+			pwr_down_out <= '1';
+			start <= '1';
+			data_out <= commCH3;
+			if spi_busy = '0' then -- el modulo spi termino la transmision y ya esta listo el dato de respuesta
+				next_state <= e1;
+			else
+				next_state <= e3;
+			end if;
 			
 		when others => next_state <= ini;
 		
