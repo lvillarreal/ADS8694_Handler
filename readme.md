@@ -3,7 +3,11 @@
 
   _Sistema en VHDL que gestiona la comunicación con un ADC ADS8694 y con un software de visualización y procesamiento de datos (Signal Plotter)_
 
+## Diagrama en bloques simplificado del sistema
+
 ![Diagrama en bloques simplificado del sistema.](/image/diagrama_FPGA.png)
+
+## Breve descripción de cada bloque
 
 | Bloque | Descripción |
 | ------ | ------ |
