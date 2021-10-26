@@ -1,28 +1,8 @@
-
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date:    19:27:12 02/12/2020 
--- Design Name: 
--- Module Name:    Comm_Handler - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
-----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 -- Bloque para implementar el protocolo de comunicacion entre el sistema de medición
--- y el Serial Plotter.
+-- y el software Signal Plotter.
 
 -- Protocolo para establecer comunicacion
 

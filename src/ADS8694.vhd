@@ -1,12 +1,12 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
+-- Bloque que se encarga de la gestion de comunicacion con el ADC ADS8694
 
 entity ADS8694 is
 	GENERIC(
 		MISO_width	:	integer := 18;
 	   MOSI_width	:	integer := 16
-		--divisor 		: integer := 5		-- la frecuencia de clock de spi puede ser una fraccion del clock del bloque general
 );
 
     Port ( 	 clk 						: 	in	STD_LOGIC;

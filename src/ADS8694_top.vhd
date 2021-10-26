@@ -2,9 +2,12 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.all;
 
+-- ADS8694_TOP: Bloque que nuclea todo el sistema, donde se realizan las instanciaciones e interconexiones
+
 --	Los datos en punto fijo se representaras de la forma fixdt(signed,cantBits,bitsDecimal)
 --	donde signed (1 o 0) indica si es signado o no, bitEntero cantidad de bits parte entera,
 --	bitsDecimal cantidad de bits parte decimal
+
 
 entity ADS8694_top is
 
@@ -24,9 +27,6 @@ entity ADS8694_top is
 		  RX				 :	in std_logic;
 		  
 
-       -- data_received : out std_logic_vector(17 downto 0);
-
-
 		  
 		  -- salidas/entradas adicionales para debug
 		  an 			   : out  STD_LOGIC_VECTOR (3 downto 0);
@@ -36,11 +36,10 @@ entity ADS8694_top is
   		  RX_test			: out std_logic;
 		  TX_test			: out std_logic;
 		  select_filter 	: in 	std_logic;
---		  select_data_test: in	std_logic;
 		  sel 				: in  STD_LOGIC;
 		  led					: out STD_LOGIC_VECTOR (7 downto 0);
 		  sal_test			: out STD_LOGIC_VECTOR (17 downto 0)
---		  clk_test			: out std_logic
+
 
   );
 end ADS8694_top;
@@ -49,34 +48,6 @@ architecture Behavioral  of ADS8694_top  is
 
 -- components definition
 
---	COMPONENT send_data_test
---	GENERIC(
---		N : integer := 2);
---	PORT(
---		i_clk 			:	IN std_logic;
---		i_rst 			:	IN std_logic;  
---		i_start 			: 	IN std_logic;	
---		o_clk_test		:	out std_logic;
---		o_data 			: 	OUT std_logic_vector(17 downto 0);
---		o_data_ready 	:	OUT std_logic
---		);
---	END COMPONENT;
-
--- DECONV DATA
-
- 	COMPONENT deconv_data
-	GENERIC(
-		V_FS : integer := 167772	-- valor de fondo de escala, en representacion fixdt(1,19,14), en este caso 10.24*2^14 (se multiplica por 2^14 xq tiene 14 decimales, luego se divide por ese valor para obtener los decimales)
-	 );
-	PORT(
-		clk_i : IN std_logic;
-		reset_i : IN std_logic;
-		data_i : IN std_logic_vector(18 downto 0);
-		data_i_en : IN std_logic;          
-		data_o : OUT std_logic_vector(17 downto 0);
-		data_o_en : OUT std_logic
-		);
-	END COMPONENT;
 
 
 -- PULSE STRETCHER
@@ -212,7 +183,7 @@ end component fsm_ad8694;
     generic (
       MISO_width : integer := 18;
       MOSI_width : integer := 16
---      divisor    : integer := 5
+
     );
     port (
       clk           			: in  STD_LOGIC;
@@ -288,10 +259,6 @@ end component fsm_ad8694;
 signal clk_l1 : std_logic;
 
 signal dato : std_logic_vector(MISO_width-1 downto 0);
---signal  s_dato_rec                   : std_logic_vector(MISO_width-1 downto 0);
---signal  s_dato_env                          : std_logic_vector(MOSI_width-1 downto 0);
---signal  s_dout_ready,s_busy,s_start,s_sclk  : std_logic;
---signal  s_data_received                     : std_logic_vector(MISO_width-1 downto 0);
 
 signal s_test_or_data 		: std_logic_vector(15 downto 0);
 
@@ -315,7 +282,6 @@ signal ads8694_data_in_ready 			: 	std_logic;
 signal ads8694_spi_busy      			: 	std_logic;
 signal ads8694_start         			: 	std_logic;
 signal ads8694_data_out      			: 	std_logic_vector(MOSI_width-1 downto 0);
---signal ads8694_sclk          			: 	STD_LOGIC;
 signal ads8694_data_received 			: 	std_logic_vector(MISO_width-1 downto 0);
 signal ads8694_data_received_ready	:	std_logic;
 signal ads8694_in_pwr_down				:	std_logic;
@@ -324,10 +290,6 @@ signal ads8694_out_pwr_down			: 	std_logic;
 
 
 
---signal ads8694_an            : STD_LOGIC_VECTOR (3 downto 0);
---signal ads8694_seg           : STD_LOGIC_VECTOR (7 downto 0);
---signal ads8694_led0          : STD_LOGIC;
---signal ads8694_led1          : STD_LOGIC;
 
 -- PULSE STRETCHER SIGNALS
 	signal s_ps_clk_o				:	std_logic;
@@ -368,22 +330,6 @@ signal ads8694_out_pwr_down			: 	std_logic;
 	
 	signal s_uartHand_pwr_down			:	std_logic;
 
--- DATA TEST SIGNALS	
---	signal s_data_test_data_Ready : 	std_logic;
---	signal s_data_test_data			: 	std_logic_vector(17 downto 0);
---	signal s_data_test_start		:	std_logic;
-	
--- ADC DATA CONVERTER SIGNALS
---	signal s_dc_data_i		:	std_logic_vector(DATA_WIDTH-1 downto 0);
---	signal s_dc_data_i_en	:	std_logic;
---	signal s_dc_data_o		:	std_logic_vector(DATA_WIDTH downto 0);	-- 19 bits, formato fixdt(1,19,14)
---	signal s_dc_data_o_en	:	std_logic;
---	
----- DECONV DATA SIGNALS
---	signal	s_deconv_data_i		:	std_logic_vector(DATA_WIDTH downto 0); -- 19 bits, formato fixdt(1,19,14)
---	signal	s_deconv_data_i_en	:	std_logic;
---	signal	s_deconv_data_o		:	std_logic_vector(DATA_WIDTH-1 downto 0);
---	signal	s_deconv_data_o_en	:	std_logic;
 	
 	
 begin
@@ -395,24 +341,15 @@ begin
 	sal_test(17) <= spi_mosi;
 	sal_test(16) <= spi_cs;
 	
-	led <=dato(7 downto 0);-- when sel='1' else "00000"&'1'&dato(17)&dato(16);
+	led <=dato(7 downto 0);
 	
 	sal_test(15 downto 0) <= dato(15 downto 0);
-	
---	s_data_test_start <= s_uartHand_o_Comm_Ready;
 
-	--dato <= ads8694_data_received;
-	--dato <= s_filter_out(18 downto 1);
-	
-	--with select_filter select dato <=
-	--s_filter_out(18 downto 1) when '0',
-	--ads8694_data_received  when others;	
 	dato <= s_filter_out(18 downto 1);
 	
   -- SIGNAL INTERCONNECTION
   
   
-  --data_received <=  ads8694_data_received;
 
   PWR_DWN	<=		ads8694_out_pwr_down;
   ads8694_in_pwr_down <= s_uartHand_pwr_down;
@@ -429,7 +366,6 @@ begin
 
   spi_data_in 		<=  ads8694_data_out;
   spi_start   		<=  ads8694_start;
-  --spi_clk     	<=  ads8694_sclk;
   spi_clk	  		<=  clk_l1;
   spi_MISO    		<=  MISO;
   spi_reset   		<=  reset;
@@ -445,122 +381,40 @@ begin
 	TX					<=	s_uartHand_TX;
 	s_uartHand_RX 	<= RX;
 	
-
--- DATA CONVERTER
-   
---	s_dc_data_i <= 	ads8694_data_received	when	select_data_test = '0' else
---							s_data_test_data; --DEBUG
-											
---	s_dc_data_i_en <= 	ads8694_data_received_ready	when	select_data_test = '0' else
---								s_data_test_data_Ready; --DEBUG							
-								
-
---	s_dc_data_i 		<= ads8694_data_received;
---	s_dc_data_i_en 	<= ads8694_data_received_ready;
 	
 -- FILTER
 
 	s_filter_clk_enable	<= '1';
 
-	--s_filter_in  <= s_dc_data_o;
 	
 	s_filter_in <= '0' & ads8694_data_received;	
 	
---	with select_data_test select s_filter_in <=
---	'0' & s_data_test_data when '0',
---	'0' & ads8694_data_received  when others;	
 	
 	s_filter_clk <= s_ps_clk_o;
 	
 -- PULSE STRETCHER
 
---	with select_data_test select s_ps_pulse_in <=
---	s_data_test_data_Ready when '0',
---	ads8694_data_received_ready  when others;	
-
 	s_ps_pulse_in <= ads8694_data_received_ready;
 
--- DATA DECONVERTER
-	
---	s_deconv_data_i_en <= s_dc_data_o_en;
-	
---	with select_filter select s_deconv_data_i <=
---	s_filter_out when '0',
---	s_dc_data_o  when others;
 
 
 -- DATA BUFFER
 
 	s_datBuff_i_data_en	<=	ads8694_data_received_ready;
 	
-	--s_datBuff_i_data		<= s_deconv_data_o(DATA_WIDTH-1 downto DATA_WIDTH-16);
-	
-	
---	with select_data_test select s_test_or_data <=
---	s_data_test_data(17 downto 2) when '0',
---	ads8694_data_received(17 downto 2)  when others;
-	
 	with select_filter select s_datBuff_i_data <=
 	s_filter_out(17 downto 2) when '0',
 	ads8694_data_received(17 downto 2)  when others;
    	
-	--s_datBuff_i_Data <= s_filter_out(17 downto 2); 
 		
 	s_datBuff_i_uart_busy 		<= s_uartHand_o_TX_Busy;
 	s_datBuff_i_comm_control	<= s_uartHand_o_Comm_Ready;
 	
 	s_uartHand_i_TX_Byte 	<=  s_datBuff_o_byte;
 	s_uartHand_i_TX_ready	<=	 s_datBuff_o_byte_ready;
-	
---	s_datBuff_i_data 		<= s_data_test_data;				-- DEBUG
---	s_datBuff_i_data_en	<= s_data_test_data_Ready;		-- DEBUG
-	
-	
---	s_datBuff_i_data_en	<=	s_dc_data_o_en;
-	
---	s_datBuff_i_data 		<= s_filter_out(18 downto 3);	
---	s_datBuff_i_data_en	<=	s_dc_data_o_en;
-	
---	s_datBuff_i_data 		<= ads8694_data_received(MISO_WIDTH-1 downto MISO_WIDTH-16);	-- 16 bits de los 18
---	s_datBuff_i_data_en	<=	ads8694_data_received_ready;
-
-
-
-
-
-
-
 
 -- INSTANCIACIONES
 
--- DATA TEST
---	Inst_send_data_test: send_data_test 
---	GENERIC MAP (
---		N => 2
---	)
---	PORT MAP(
---		i_clk => clk,
---		i_rst => reset,
---		i_start => s_data_test_start,
---		o_clk_test	=>	clk_test,
---		o_data => s_data_test_data,
---		o_data_ready => s_data_test_data_Ready 
---	);
-
-
--- DATA DECONVERTER
---	Inst_deconv_data: deconv_data 
---	GENERIC MAP(
---		V_FS => V_FS
---	)
---	PORT MAP(
---		clk_i => clk,
---		reset_i => reset,
---		data_i => s_deconv_data_i,
---		data_i_en => s_deconv_data_i_en,
---		data_o => s_deconv_data_o,
---		data_o_en => s_deconv_data_o_en
---	);
 
 
 -- PULSE STRETCHER
@@ -586,19 +440,6 @@ begin
         );	
 	
 
--- ADC DATA CONVERTER
---	Inst_data_convert: data_convert 
---	GENERIC MAP(
---		V_FS =>	V_FS	
---	)
---	PORT MAP(
---		clk_i => clk,
---		reset_i => reset,
---		data_i => s_dc_data_i,
---		data_i_en => s_dc_data_i_en,
---		data_o => s_dc_data_o,
---		data_o_en => s_dc_data_o_en
---	);
 
 -- DATA BUFFER
 
@@ -661,7 +502,6 @@ uart: UART_Handler
     start         		=> ads8694_start,
 	 pwr_down_in			=> ads8694_in_pwr_down,
     data_out      		=> ads8694_data_out,
-    --sclk          		=> ads8694_sclk,
     data_received 		=> ads8694_data_received,
 	 pwr_down_out			=>	ads8694_out_pwr_down,
 	 data_received_ready	=>	ads8694_data_received_ready

@@ -9,7 +9,6 @@
 -- HDL Code Generation Options:
 --
 -- TargetLanguage: VHDL
--- TargetDirectory: C:\LUCIANO\TESIS\ADS8694_Handler\ADS8694_Handler\ADS8694_Handler\src\FILTERS
 -- TestBenchStimulus: step ramp chirp 
 
 -- Filter Specifications:

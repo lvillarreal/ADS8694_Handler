@@ -1,28 +1,7 @@
-
-
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date:    17:03:57 02/28/2020 
--- Design Name: 
--- Module Name:    Data_Buffer - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
-----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
--- Bloque que recibe el dato de 16 bits del AD y lo envia en bytes al modulo uart
+-- Bloque que recibe el dato de 16 bits y lo envia en dos bytes al modulo uart
 
 entity Data_Buffer is
 	generic (
